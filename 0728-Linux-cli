@@ -67,3 +67,174 @@ ifdown: 关闭网卡， 如ifdown eth0
 systemctl: 重启网络， 如：systemctl restart network
 
 etc means : etcetera, 就是and so on ，诸如此类、等等的意思
+
+
+du -sh /boot : 查看boot 文件夹 的大小；
+boot：内核程序及引导程序所在目录；
+bin 等同于 usr/bin: 普通用户二进制命令目录；
+sbin: root 用户使用的二进制命令目录；
+dev: (device) 设备目录（光驱、磁盘）；
+etc: 系统基础服务配置文件所在目录；
+home: 普通用户的家目录；
+root: 管理员的家目录；
+lib/lib64:  库文件所在目录；
+mnt: 临时挂载点；
+opt: 第三方程序目录；（optional,是“可选”的意思，是给主机额外安装软件所摆放的目录，用来安装附加软件包，是用户级的程序目录，例如任何外部或第三方软件; https://aiops.com/news/post/5406.html）
+proc: 虚拟的文件系统，内核和进程信息；(process: /proc是一种伪文件系统（也即虚拟文件系统，它只存在内存当中，而不占用外存空间。它以文件系统的方式为访问系统内核数据的操作提供接口），存储的是当前内核运行状态的一系列特殊文件，用户可以通过这些文件查看有关系统硬件及当前正在运行进程的信息，甚至可以通过更改其中某些文件来改变内核的运行状态。http://m.w3capi.com/mcms/content/id/62/cid/27.html)
+tmp: 临时目录，所有用户可以进入；
+
+查看主机名：
+1. hostname
+2. uname -n
+
+修改主机名：
+1. nmtui( nm: NetworkManager; tui: text user interface)
+2. hostnamectl set-hostname stanbers
+3. vim /etc/hostname
+
+/etc/hosts:  系统本地的DNS 解析文件（局域网 域名和IP 解析文件）， 主要用于内部测试，临时访问，server 之间一般会有主机名的形式连接
+比如你可以ping localhost
+[root@localhost home]# cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+[root@localhost home]# 
+可以在里面加自定义的hosts,如： 
+[root@localhost home]# cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+172.16.216.144   stanbers
+[root@localhost home]# ping stanbers
+PING stanbers (172.16.216.144) 56(84) bytes of data.
+64 bytes from stanbers (172.16.216.144): icmp_seq=1 ttl=64 time=0.070 ms
+64 bytes from stanbers (172.16.216.144): icmp_seq=2 ttl=64 time=0.097 ms
+64 bytes from stanbers (172.16.216.144): icmp_seq=3 ttl=64 time=0.093 ms
+^C
+--- stanbers ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2000ms
+rtt min/avg/max/mdev = 0.070/0.086/0.097/0.016 ms
+[root@localhost home]# 
+
+
+FHS: Filesystem Hierachy Standard
+
+网络配置文件：
+[root@localhost home]# cat /etc/sysconfig/network-scripts/ifcfg-eth1 
+HWADDR=00:0C:29:7C:1B:97
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=none
+IPADDR=172.16.216.144
+PREFIX=16
+GATEWAY=172.16.216.2
+DNS1=223.5.5.5
+DNS2=202.100.0.68
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=yes
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+IPV6_ADDR_GEN_MODE=stable-privacy
+NAME=eth1
+UUID=81784f0a-8090-3f3b-ae42-7f9018a181e0
+ONBOOT=yes
+AUTOCONNECT_PRIORITY=-999
+[root@localhost home]#
+
+/etc/fstab: file system table, 配置开机设备自动挂载的文件列表
+
+cat: concatenate 连接
+
+chmod: change mode
+rwx: read write execute
+==========================================================
+火车：
+curl -s -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+yum install sl -y
+sl
+
+牛说：
+yum install cowsay -y
+cowsay "I am stanbers"
+==========================================================
+motd is the abbreviation of “Message Of The Day”, and it is used to display a message when a remote user login to the Linux Operating system using SSH.
+
+cp 复制目录
+cp 选项   源    目标
+cp  /etc/hosts   /tmp/   ---> 表示把hosts 文件复制到tmp 目录下
+cp -r /etc /tmp/   ---> 表示把etc 文件夹复制到tmp 目录下，加了 -r , 或者 加 -a 也可以 
+
+rm -f : 强制删除
+rm -r : 递归删除（r: recursion）
+
+rpm -qa vim-enhanced, 其中-q 是query , -a 是all
+用来查询是否安装了vim
+
+vi: visual interface   可视化界面
+
+:wq, w 代表 write， q 代表quit
+!, 代表强制
+
+如需撤销，在普通模式下，用u那即可，u代表undo 
+
+vim 的快捷键：
+:set nu, 显示行号
+:set nonu, 取消行号
+shift+g,即G，到最后一行
+gg,到第一行
+0表示跳到行首，$表示跳到行末
+5gg,表示跳到第5行的行首
+/内容，代表向下查找，如果出现多个结果，敲n继续搜索，N反向搜索
+?内容，代表向上查找，如果出现多个结果，敲n继续搜索，N反向搜索
+:%///g, s代表switch, g代表global, 如：%/root/boot/g,表示全局把root 替换成boot
+:n1,n2s/A/B/g 表示全局替换从n1行到n2行里的A,换成B
+
+yy 表示复制当前行
+nyy 表示从当前行开始的n行
+p 表示粘贴到光标的下一行
+P 表示粘贴到光标的上一行
+dd 删除当前行
+ndd 删除从当前开始的n行
+x 删除光标后字符
+X 删除光标前字符
+
+cat -n 文件，会显示文件的行号
+echo  不是单词缩写，就是单词，表示 回声的意思，『吃什么吐什么』
+[root@localhost stan]# echo -e "abc\nxyz"
+abc
+xyz
+[root@localhost stan]# echo -e "abc\txyz"
+abc xyz
+[root@localhost stan]# echo "abc\nxyz"
+abc\nxyz
+[root@localhost stan]#
+
+
+more/less 查看文件内容
+less -N 显示行号
+
+head 查看文件头部，默认10行
+head -5 文件，显示前5行
+
+tail 查看文件尾部，默认10行
+tail -5 文件，显示文件末尾5行
+tail -f 动态跟踪文件尾部的变化，查看日志文件结尾
+
+grep: Globally search a Regular Expression and Print
+grep [选项] 内容 文件
+--color-auto，过虑出的内容显示颜色
+grep root test3: 过虑出包含root 的行；
+grep -n root test3: 过虑出包含root 的行，并显示这些在原文件中的行号；
+grep -v root test3: 过虑出不包含root 的行；
+grep -i root test3:  过虑出包含root(不区分大小写)的行；
+grep -E "abc|xyz" test3: 过虑出包含abc 和 xyz 的行；
+egrep "abc|xyz" test3: 结果同上
+grep -o abc test3: 只输出包含abc的字符串(如果有匹配的，无匹配的话，就啥也不输出)
+grep -w abc test3: 只输出包含abc 这个单词的行，不会输出像abc123的行
+
+
+touch 创建空文件
+touch file{1..3}，会创建出来file1/file2/file3三个文件
+
+
