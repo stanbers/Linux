@@ -1,0 +1,69 @@
+Linux 常用命令：
+对于一串string ，用ctl+a ,光标跳到开关，用ctl+e，光标跳到结尾； 
+whoami; 
+tab 键连续按两下，会提示相关命令，补全功能；
+ctl+u, 删除光标之前的字符串； 
+ctl+k,删除光标之后的字符串；
+ctl+d,退出当前会话，即断开与服务器的连接；
+ctl+l, 清屏(相当于clear);
+ecs+. , 可以调出上一个命令最后个空格后面的部分
+
+Linux bash 语法：
+命令   [选项]   [路径/文件/目录]
+
+可以搜索引擎里加入在某一网站，即只在某一网站搜索，如：
+site: blog.51cto.com [关键字]
+
+history, 查看命令历史记录
+ctrl+r, 搜索命令历史中的命令
+
+shutdown -r  now: 立刻重启
+shutdown -h now: 立刻关机
+
+reboot ： 重启
+logout： 注销
+
+pwd: print work directory
+cd: change directory
+
+文本编辑器推荐使用：
+typora
+
+
+ls：list directory contents
+ls -l: 文件和文件属性（l 代表：long，表示长格式）
+ls -a： -a 表示显示所有文件
+
+. 表示当前用户所在目录； .. 表示当前用户所在目录的上级目录
+~ 表示当前用户家目录，比如cd ~ ,表示回到根目录
+- 表示上一次所在的目录
+
+mkdir:
+同时创建多个目录：mkdir a b c
+直接用空格隔开就可以
+
+echo {1..10}  会打印出来1到10；
+结合mkdir 使用：mkdir stu{1..10}, 结果会创建stu1至stu10 ，10个目录
+
+
+mkdir -p  /root/home/stan/a/b/c:  a 、b、c 这三个目录可以直接创建出来，即递归创建
+
+tree: 以树形结构显示内容
+tree /home/
+tree -L , 后面跟数字，表示显示的层级， 如：tree -L 2 
+
+只显示某一个特定的目录： ls -d a 或者ls -ld a， 这样只会看到a 目录
+
+没时间：就意味着这件事情对你来说不重要
+
+中国这么多人，这么多大学生，甚至是211、985的学生，你该何去何从？
+
+只有全力以赴才可能有最好的结果
+
+轻财足以聚人，律己足以服人，量宽足以得人，身先足以率人
+
+ifup: 启动网卡；
+ifdown: 关闭网卡， 如ifdown eth0
+systemctl: 重启网络， 如：systemctl restart network
+
+etc means : etcetera, 就是and so on ，诸如此类、等等的意思
