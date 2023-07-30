@@ -1,0 +1,114 @@
+如果多次使用命令：touch aa,会出现什么结果，这种情况只会修改文件的时间戳，文件本身没有变化
+
+查看已有别名：alias
+设置别名：alias net='cat /etc/sysconfig/network-scripts/ifcfg-eth1'
+设置完成后，直接在输入net 就等同于上面的cat
+[root@localhost network-scripts]# alias
+alias cp='cp -i'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias grep='grep --color=auto'
+alias l.='ls -d .* --color=auto'
+alias ll='ls -l --color=auto'
+alias ls='ls --color=auto'
+alias mv='mv -i'
+alias rm='rm -i'
+alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+[root@localhost network-scripts]# alias net='cat /etc/sysconfig/network-scripts/ifcfg-eth1'
+[root@localhost network-scripts]# alias
+alias cp='cp -i'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias grep='grep --color=auto'
+alias l.='ls -d .* --color=auto'
+alias ll='ls -l --color=auto'
+alias ls='ls --color=auto'
+alias mv='mv -i'
+alias net='cat /etc/sysconfig/network-scripts/ifcfg-eth1'
+alias rm='rm -i'
+alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-tilde'
+[root@localhost network-scripts]# net
+HWADDR=00:0C:29:7C:1B:97
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=none
+IPADDR=172.16.216.144
+PREFIX=16
+GATEWAY=172.16.216.2
+DNS1=223.5.5.5
+DNS2=202.100.0.68
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=yes
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+IPV6_ADDR_GEN_MODE=stable-privacy
+NAME=eth1
+UUID=81784f0a-8090-3f3b-ae42-7f9018a181e0
+ONBOOT=yes
+AUTOCONNECT_PRIORITY=-999
+[root@localhost network-scripts]# 
+
+在默认情况下，执行命令时，别名优先于命令
+如何忽略别名，用命令的绝对路径：
+[root@localhost stan]# rm test3
+this is remove action, r u sure ? test3
+[root@localhost stan]# which is rm
+alias rm='echo "this is remove action, r u sure ?"'
+ /usr/bin/echo
+/usr/bin/which: no is in (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin)
+[root@localhost stan]# /usr/bin/rm test3
+[root@localhost stan]# ls -ltr
+总用量 36
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Videos
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Templates
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Public
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Music
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Downloads
+drwxr-xr-x. 2 stan stan    43 8月  19 2022 Documents
+drwxr-xr-x. 2 stan stan     6 8月  20 2022 Desktop
+drwxr-xr-x. 2 stan stan   100 8月  20 2022 Pictures
+drwxr-xr-x. 2 stan stan    77 8月  20 2022 Software
+-rw-r--r--. 1 root root 21926 7月  10 16:21 get-docker.sh
+drwxr-xr-x. 2 root root    19 7月  10 16:38 xu
+drwxr-xr-x. 2 root root     6 7月  10 17:55 test4
+-rw-r--r--. 1 root root   109 7月  10 17:57 test4.tar.gz
+-rw-r--r--. 1 root root   156 7月  10 18:00 Dockerfile
+-rw-r--r--. 1 root root     7 7月  29 19:02 aa
+[root@localhost stan]# 
+
+[root@localhost stan]# \rm aa
+[root@localhost stan]# ls -ltr
+总用量 32
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Videos
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Templates
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Public
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Music
+drwxr-xr-x. 2 stan stan     6 8月  19 2022 Downloads
+drwxr-xr-x. 2 stan stan    43 8月  19 2022 Documents
+drwxr-xr-x. 2 stan stan     6 8月  20 2022 Desktop
+drwxr-xr-x. 2 stan stan   100 8月  20 2022 Pictures
+drwxr-xr-x. 2 stan stan    77 8月  20 2022 Software
+-rw-r--r--. 1 root root 21926 7月  10 16:21 get-docker.sh
+drwxr-xr-x. 2 root root    19 7月  10 16:38 xu
+drwxr-xr-x. 2 root root     6 7月  10 17:55 test4
+-rw-r--r--. 1 root root   109 7月  10 17:57 test4.tar.gz
+-rw-r--r--. 1 root root   156 7月  10 18:00 Dockerfile
+
+取消别名用：unalias 名字
+============================================================
+重定向：
+标准输出重定向，用数字 1表示
+标准错误输出重定向，用数字2表示
+标准输入重定向，用数字0表示
+
+echo aa >aa.txt,包含的动作：
+1. 输出aa;
+2. 清空aa.txt;
+3. 将aa写入到aa.txt;
+
+清空文件命令： >aa.txt
+
+>> 两个箭头表示追加输出，如echo aabbcc>>aa.txt, 不会有清空操作
