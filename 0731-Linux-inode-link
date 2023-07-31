@@ -1,0 +1,91 @@
+inode: 索引节点 （index node）,是磁盘上的一块 存储空间，一个inode 大小为256字节，以一串数字的形态是显示。
+
+作用：存储文件的属性信息（通过ls -ltri 输出出来的信息都在里面放着），还包含指向文件真正实体的位置信息（指针）
+
+inode 是如何产生的：
+买回来磁盘，要使用，需要经过四个步骤：
+ a. 分区（打隔断） sda1 / sda2
+ b. 格式化（装修） 创建文件系统(组织和存储数据的一种机制)
+ c. 挂载（装门和窗）
+ d. 使用（入住）
+inode 是在磁盘格式化，创建文件系统时产生的， linux 文件系统一般有：ext4, xfs； 
+创建文件系统时，就会生成inode / block 
+
+数据分为两种：
+ a. 真正的数据；
+ b. 元数据（数据的数据信息 或者数据的属性）
+
+ext4: fourth extended file system
+xfs: extended file system
+
+linux 中 查询文件的流程原理：
+
+no space left on device:
+linux 中出现上面的磁盘满，有两种情况：
+a . inode 满了；
+b . block 满了；
+
+单个block 大小为4k,
+磁盘存储的都是大文件时，一定是block 不够用；
+磁盘存储的都是小文件（低于单个block大小的文件），一定是inode 不够用；
+
+分区在格式化的时候，是inode 多，还是block多？
+答：block 多，因为工作当中，多数文件的大小都是大于4k，所以block 多；
+
+一个block 里只被一个文件占用，不能放多个文件；
+
+ls -i ,这里的i 代表 index, 一般习惯用 ls -li， l 代表long , 长格式，包含属性信息
+df -i,  查看磁盘和分区的inode:
+ df - report file system space usage， 其中d 代表display, f代表 file system
+df -h, 查看磁盘和分区的大小：
+ -h, --human-readable
+               print sizes in powers of 1024 (e.g., 1023M)
+
+使用df -h 时，发现磁盘空间还有，为何会报no space left on device ？ 
+答： inode 满了
+
+=================================================================================
+链接：link, 分为 hard link / soft link
+硬链接：即具有相同的inode 的文件如下：
+
+[root@stanbers ~]# cd .
+[root@stanbers ~]# cd ~
+[root@stanbers ~]# cd ./
+[root@stanbers ~]# cd /root
+[root@stanbers ~]# ls -lid . ~ ./ /root
+33574977 dr-xr-x---. 6 root root 246 7月  29 19:02 .
+33574977 dr-xr-x---. 6 root root 246 7月  29 19:02 ./
+33574977 dr-xr-x---. 6 root root 246 7月  29 19:02 /root
+33574977 dr-xr-x---. 6 root root 246 7月  29 19:02 /root
+[root@stanbers ~]# 
+
+语法：
+ln 源文件   硬链接文件
+
+a . 具有相同的inode 的多个文件互为硬链接文件，本持是相同文件，不同文件名；
+b . 删除硬链接文件或者删除源文件任意之一，文件实体并不会被删除；
+c . 待所有的更链接文件及源文件被删除后，再存放新的数据会占用这个文件的空间，或者磁盘fsck检查时，删除的数据也会被系统回收
+
+硬链接的用途：可以防止重要文件被误删；
+硬链接只能针对文件，不能针对目录；
+
+[root@stanbers xu]# mkdir hard_link
+[root@stanbers xu]# cd hard_link/
+[root@stanbers hard_link]#  touch sourcefile
+[root@stanbers hard_link]# ll
+总用量 0
+-rw-r--r--. 1 root root 0 7月  31 17:57 sourcefile
+[root@stanbers hard_link]# ln sourcefile hardlinkfile
+[root@stanbers hard_link]# ls -li
+总用量 0
+17696268 -rw-r--r--. 2 root root 0 7月  31 17:57 hardlinkfile
+17696268 -rw-r--r--. 2 root root 0 7月  31 17:57 sourcefile
+[root@stanbers hard_link]#
+
+软链接：即类似windows 中的快捷方式，把复杂的路径简单化
+
+ln -s 源文件  软链接文件
+
+软链接没有block，它是这样的路线：
+soft_file ---> soft_file_inode---->source file --->source file inode--->source file blocks
+
