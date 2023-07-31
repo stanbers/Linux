@@ -89,3 +89,9 @@ ln -s 源文件  软链接文件
 软链接没有block，它是这样的路线：
 soft_file ---> soft_file_inode---->source file --->source file inode--->source file blocks
 
+du: - estimate file space usage
+du -sh ,
+ -s, --summarize
+              display only a total for each argument
+ -h, --human-readable
+              print sizes in human readable format (e.g., 1K 234M 2G)
