@@ -1,0 +1,157 @@
+重定向：
+标准输出重定向，用数字 1表示
+标准错误输出重定向，用数字2表示
+标准输入重定向，用数字0表示
+
+echo aa >aa.txt,包含的动作：
+1. 输出aa;
+2. 清空aa.txt;
+3. 将aa写入到aa.txt;
+
+清空文件命令： >aa.txt
+
+>> 两个箭头表示追加输出，如echo aabbcc>>aa.txt, 不会有清空操作
+
+=========================================================================================
+要想成功，永远比别人多做一点点，早做一点点，做好一点点
+
+文件的三种状态：(使用stat 文件名)
+最近访问：access, 浏览，针对内容；
+最近更改：modify, 更改，针对 内容；
+最近改动：change, 状态，针对属性；
+
+ls -li 代表查看当前文件夹下的所有文件属性
+[root@stanbers stan]# ls -li
+总用量 36
+17503507 -rw-r--r--. 1 root root     3 7月  29 19:59 aa.txt
+
+第一列: 索引节点，形态是数字
+第二列：首字符代表文件类型，中间9个字符代表文件权限，. 和selinux(高级安全组件)相关符号
+第三列：硬链接数
+第四列：用户
+第五列：用户组
+第六列：文件大小（目录不是）
+第七至九列：日期时间
+第十列：文件名
+
+linux 下不根据扩展名确定类型，但是依然会有扩展名，给运维人员看
+
+- 代表普通文件
+d 代表目录
+l 代表软链接文件 （link）（在windows 中对应的就是快捷方式，即a 指向b），如： [root@stanbers stan]# ln -s /etc/hosts /tmp/a.hosts
+[root@stanbers stan]# cat /tmp/a.hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+172.16.216.144   stanbers
+[root@stanbers stan]# 
+
+c 代表字符设备
+b 代表块设备
+s 代表socket 文件
+
+=========================================================================================
+wc : 查看行数，字符数等（Word Count）
+-l 代表 查看行数；
+
+
+查找命令：which / where
+which: 查看二进制命令所在路径；
+where: 查看文件及文件的帮助等的路径；
+-b 查看二进制命令所在路径，等同于which 
+[root@stanbers stan]# which ls
+alias ls='ls --color=auto'
+ /usr/bin/ls
+[root@stanbers stan]# where is -b ls
+bash: where: 未找到命令...
+[root@stanbers stan]# whereis -b ls
+ls: /usr/bin/ls
+[root@stanbers stan]# 
+
+find命令：
+find 路径 [选项1] 参数1 [选项2] 参数2
+按名字查找：
+[root@stanbers stan]# find / -name "hosts"
+find: ‘/run/user/1001/gvfs’: 权限不够
+/etc/hosts
+/etc/avahi/hosts
+
+按类型查找：-type (常用的f / d / l / c / b / s)(可以用man find ,然后搜索 /-type)
+[root@stanbers stan]# find /root/ -type d
+/root/
+/root/.cache
+/root/.cache/abrt
+/root/.config
+/root/.config/abrt
+/root/.config/gconf
+/root/.config/gconf/desktop
+
+组合查找：
+find / -name "hosts" -a -type f （其中-a 代表and）:查找名字为hosts 的文件
+find / -name "hosts" -o -type d  ( 其中-o 代表or）：查找名字为hosts 的文件或目录
+
+取反：！
+find / ! -name "hosts": 代表不是名字为hosts 的文件或目录都会被查出 
+
+-size +1M 代表大于1 M
+
+-mtime 按修改时间查找：
+-mtime +7 代表7天以前的
+
+-exec 对查找出的结果进行处理：
+find / -name "aa.txt" -mtime +7 -exec rm -f {} \; 
+
+! 加之前执行过的命令开头的字符，可以快速调回之前的以该字符开头的命令
+$(命令) 或`命令`， 可以在里面拼接路径、命令，如：
+rm -f $(find / -name "aa.txt") 或者 rm -f `find / -name "aa.txt"`
+
+==========================================================================================
+tar : tape archive
+
+打包压缩：-zcvf 或者省去v,即 -zcf 
+
+z: gzip 
+c: creating archive 
+v: verbose operation 显示操作过程
+f: file 
+
+tar -zcf etc.tar.gz /etc
+
+查看压缩后的文件：
+tar -tf etc.tar.gz,
+ 其中 -t , --list
+              List the contents of an archive.
+
+解压缩：
+zxvf 或 zxf 或xf 
+其中-x 代表 extract
+
+解压缩到指定路径：
+-C, --directory=DIR
+              Change to DIR before performing any operations.
+
+打包软链接文件指向的真实源文件：
+-h, --dereference
+              Follow symlinks; archive and dump the files they point to.
+
+===========================================================================================
+date 命令
+ -s, --set=STRING
+              set time described by STRING
+date -s "2030/7/31"
+
+-F 代表 full date
+
+[root@stanbers ~]# date +%F
+2023-07-30
+[root@stanbers ~]# date %+4Y-%m-%d
+date: 无效的日期"%+4Y-%m-%d"
+[root@stanbers ~]# date +%Y-%m-%d
+2023-07-30
+[root@stanbers ~]# date +%F\ %T
+2023-07-30 21:03:52
+[root@stanbers ~]# date +%F -d "3year"
+2026-07-30
+[root@stanbers ~]# 
+
+-d, --date=STRING
+              display time described by STRING, not 'now'
