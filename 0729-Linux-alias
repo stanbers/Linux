@@ -53,6 +53,7 @@ AUTOCONNECT_PRIORITY=-999
 
 在默认情况下，执行命令时，别名优先于命令
 如何忽略别名，用命令的绝对路径：
+which命令用于查找并显示给定命令的绝对路径，
 [root@localhost stan]# rm test3
 this is remove action, r u sure ? test3
 [root@localhost stan]# which is rm
