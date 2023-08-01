@@ -1,0 +1,149 @@
+passwd: 更改密码
+普通用户给自己改密码：passwd
+root 用户给其他用户设置密码： passwd 用户名 ,或者可以这样：
+echo 12345|passwd --stdin username
+
+批量设置密码命令：
+a. 先准备user.list 文件；
+b. cat user.list | chapasswd 
+
+
+su : 切换用户角色，从A用户切换到B用户
+su - username , 其中 的 - 代表携带环境变量
+
+从下面可以看出 test1 前面没有 - ， test2 前面有 - ， 
+当执行pwd时，test1 用户仍在root 路径下：
+[root@stanbers ~]# env | grep root
+MAIL=/var/spool/mail/root
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+PWD=/root
+HOME=/root
+XDG_DATA_DIRS=/root/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
+[root@stanbers ~]# su test1
+[test1@stanbers root]$ pwd
+/root
+[test1@stanbers root]$ su root
+密码：
+[root@stanbers ~]# useradd test2
+[root@stanbers ~]# su - test2
+[test2@stanbers ~]$ pwd
+/home/test2
+[test2@stanbers ~]$ 
+
+-c 参数：
+-c, --command=command
+           Pass command to the shell with the -c option.
+只是到test2 用户家里执行了 pwd, 然后再回到root 用户：
+[root@stanbers ~]# su - test2 -c pwd
+/home/test2
+[root@stanbers ~]#
+
+====================================================================================================
+sudo: 不切换到root, 在操作命令的同时，拥有root 权限，一旦操作完成，权限就消失，并且不需要root 密码，简言之，以管理员的身份执行部分命令；
+sudo allows a permitted user to execute a command as the superuser
+     or another user, as specified by the security policy
+
+  sudo 的配置文件是：/etc/sudoers， 通过visudo 管理该配置文件，主要是在这个文件里配置要给哪些用户配置哪些权限
+
+查看用户信息命令：
+id
+whoami
+who
+w
+
+查看用户的log:
+last
+lastlog
+
+更改文件的属性：
+chown:  change file owner and group
+ 用法：  chown 用户.用户组 文件  ----> 更改文件的用户和组；
+        chown 用户  文件 --->更改文件的用户；
+        chown .用户组 文件-----> 更改文件的用户组，等同于chgrp 用户组 文件
+ 以上用法的前提是用户和组必须存在。
+
+chgrp:  change group ownership
+
+
+财富来源于信息差;
+技术的提升仅是量的积累，思想的提升才是质的飞跃;
+学习技术过程中，积累的学习能力以及思维方法才是更重要的，因为现在学到的工作中根本不够用，一定要一直学习，培养学习能力至关重要；
+
+chattr :
+a ---> 只能追加内容，不能删除；
+A file with the 'a' attribute set can only be opened in
+              append mode for writing.
+i ----> 不能修改，不能删除；
+A file with the 'i' attribute cannot be modified: it
+              cannot be deleted or renamed, no link can be created to
+              this file, most of the file's metadata can not be
+              modified, and the file can not be opened in write mode.
+chattr +i test.txt
+chattr -i test.txt
+
+lsattr : 查看chattr设置的属性
+
+======================================================================================================================
+基础权限 ：rwxrwxrwx
+
+前三位： 用户位
+中三位：用户组位
+后三位：其他权限位（即除了用户和用户组以外的）
+
+r read 可读权限 用数字4表示， 即读取文件内容（block里）的权限；
+w write 可写权限 用数字2 表示，即增加、修改、删除文件内容（block里）的权限；
+x execute 可执行权限 用数字1表示，
+- 表示没有权限 ，用数字0表示；
+
+chmod - change file mode bits
+=======================================================================================================================
+为什么创建文件的默认权限为644，目录为755 ？
+umask - set file mode creation mask
+ 权限掩码，它的值为022
+
+文件默认权限结论：
+ a. 权限从666开始计算；
+ b. 如果是偶数，正常做减法；
+ c. 如果是奇数，奇数位加一；
+
+目录默认权限结论：
+ a. 权限从777开始计算；
+ b. 正常做减法；
+
+===================================================== 
+suid: setuid - set user identity
+为什么会有suid ？
+从下面可以看到passwd 设置了suid，在给一个命令设置了suid 后，所有使用这个命令的用户，都拥有和这个命令对应的用户的权限 。比如你作为一个新的user ,在执行passwd 命令更改密码时，可以执行的下去，原因就是这个。
+
+[root@stanbers /]# ls -ltr `which passwd`
+-rwsr-xr-x. 1 root root 27856 4月   1 2020 /usr/bin/passwd
+[root@stanbers /]# 
+
+通过平时的总结出来的东西来解释新的现象和行为，如果可以成功，就是可取的，如果不成功，再撤回继续总结，再验证，如此反复的总结-->验证--> 再总结-->整理出自己的思维框架。
+
+=============================================================
+
+查找系统中带suid 的命令：
+find /bin/ -type f -perm 4755|xargs ls -l
+
+[root@stanbers /]# find /bin/ -type f -perm 4755|xargs ls -l
+-rwsr-xr-x. 1 root root   52968 5月  18 2022 /bin/at
+-rwsr-xr-x. 1 root root   73888 8月   9 2019 /bin/chage
+-rwsr-xr-x. 1 root root   57576 5月  16 22:28 /bin/crontab
+-rwsr-xr-x. 1 root root   32096 10月 31 2018 /bin/fusermount
+-rwsr-xr-x. 1 root root   78408 8月   9 2019 /bin/gpasswd
+-rwsr-xr-x. 1 root root   61320 12月  1 2022 /bin/ksu
+-rwsr-xr-x. 1 root root   44264 2月   3 2021 /bin/mount
+-rwsr-xr-x. 1 root root   41936 8月   9 2019 /bin/newgrp
+-rwsr-xr-x. 1 root root   27856 4月   1 2020 /bin/passwd
+-rwsr-xr-x. 1 root root   27672 1月  26 2022 /bin/pkexec
+-rwsr-xr-x. 1 root root   32128 2月   3 2021 /bin/su
+-rwsr-xr-x. 1 root root   31984 2月   3 2021 /bin/umount
+-rwsr-xr-x. 1 root root 2447328 4月   5 21:49 /bin/Xorg
+[root@stanbers /]# 
+
+
+===========================================================
+sgid 其中g 代表group，即用户组，理解起来和suid 差不多， 与suid 不同的是，sgid 可以针对 文件，也可以针对目录设置。
+
+脑子里没货--->没自信-->工作上不会有突破
