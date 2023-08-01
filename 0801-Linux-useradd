@@ -1,0 +1,114 @@
+Linux 中的用户管理:
+三类用户：
+1. 超级用户： root, UID=0, 系统最高权限
+2. 普通用户：写的权限范围，/home/用户名, /tmp， 它是由管理员创建， 普通用户如何管理系统：
+ a. 切换到root,  su - 用户名 （角色改变，由普通用户变成了root）（农民起义）
+  su - run a command with substitute(替换) user and group ID
+ b. 不切换到root，可以使用root 的权限 去做事，sudo useradd username, 赋予普通用户一部分权限
+3. 虚拟用户（傀儡用户）：多数情况下，装系统就存在的，不能登录
+ linux 中的文件、进程，如果要存在，必须要有对应的用户和组。类似人出生，必须有父母。文件创建时就要有对应的用户和组，进程启动时就要有对应的用户和组；虚拟用户的存在的目的就是满足进程启动时对用户和组的要求。为何不用普通用户呢？依据最小化原则：
+ a. 安装软件最小化；
+ b. 登录安全最小化；（普通用户）
+  c. 进程启动权限最小化；
+ d. 权限最小化；
+
+============================================================================================
+用户组（group）:
+一个用户可以在多个组里；
+
+a. 创建用户的时候默认产生用户组，默认情况下，用户和组同名，UID==GID；
+
+用户相关的配置文件：
+直接相关有4个：
+/etc/passwd , 用户的主配置文件，用户的各种属性；
+/etc/shadow , 用户密码文件，存入密码及密码的属性 
+/etc/group, 组文件，存在用户组及属性；
+/etc/gshadow, 用户组的密码文件（废弃）；
+
+和创建用户相关的有3个：
+/etc/default/useradd, 创建用户命令useradd 的配置文件；
+/etc/skel， 创建用户环境变量原始文件存入地；
+/etc/login.defs , 创建用户系统配置，对应文件；
+
+ [root@stanbers ~]# cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+
+其中：
+root: 用户名称；
+x: 用户密码；（早期的Unix 系统中，该字段是存放用户密码的，由于安全原因，后来把这个密码字段内容稳到/etc/shadow文件中了，这个位置上可以看到一个x，表示该用户的密码是在/etc/shadow文件中保护的）
+0: 用户UID；
+0: 用户GID；
+root: 用户说明；
+/root: 用户家目录；
+/bin/bash: shell 解释器；（当前用户登录后所使用的解释器， 在CentOS/Red Hat等主流Linux 中，默认的解释器为bash. 如果不希望用户登录系统，可以通过usermod或者手工修改passwd配置，将解释器类型改为/sbin/nologin 即可。如果仔细看passwd文件，会发现大部分内置系统虚拟用户的这个字段都是/sbin/nologin，表示禁止登录系统，这是出于安全的考虑。）
+
+============================================================================================
+和用户相关的命令：
+useradd, 添加用户；
+usermod, 修改用户；
+userdel, 删除用户；
+
+[root@stanbers ~]# useradd test1
+[root@stanbers ~]# id test1
+uid=1002(test1) gid=1002(test1) 组=1002(test1)
+[root@stanbers ~]# tail -n 1 /etc/passwd /etc/group /etc/shadow /etc/gshadow
+==> /etc/passwd <==
+test1:x:1002:1002::/home/test1:/bin/bash
+
+==> /etc/group <==
+test1:x:1002:
+
+==> /etc/shadow <==
+test1:!!:19570:0:99999:7:::
+
+==> /etc/gshadow <==
+test1:!::
+[root@stanbers ~]# 
+
+
+在使用su - test时，命令行变成-bash-4.1$ ， 这是因为缺少用户环境变量。
+
+
+chage -l test1, 可以查看用户过期时间：
+[root@stanbers ~]# chage -l test1
+最近一次密码修改时间     ：8月 01, 2023
+密码过期时间     ：从不
+密码失效时间     ：从不
+帐户过期时间      ：从不
+两次改变密码之间相距的最小天数  ：0
+两次改变密码之间相距的最大天数  ：99999
+在密码过期之前警告的天数 ：7
+[root@stanbers ~]# 
+
+
+输能力，不输人品
+=========================================================================出现 userdel: user test1 is currently used by process 9267情况，是因为test1在被使用中
+[root@stanbers ~]# su test1
+[test1@stanbers root]$ su root
+密码：
+[root@stanbers ~]# userdel test1
+userdel: user test1 is currently used by process 9267
+[root@stanbers ~]# exit   ----> 使用ctl + d
+[test1@stanbers root]$ exit   ----> 使用ctl + d
+[root@stanbers ~]# userdel test1  ----> 再删就可以成功了
+[root@stanbers ~]# 
+
+cp 的快捷命令：
+[root@stanbers ~]# cat /etc/default/useradd
+# useradd defaults file
+GROUP=100
+HOME=/home
+INACTIVE=-1
+EXPIRE=
+SHELL=/bin/bash
+SKEL=/etc/skel
+CREATE_MAIL_SPOOL=yes
+
+[root@stanbers ~]# cp /etc/default/useradd{,.ori}
+[root@stanbers ~]# ls -ltr /etc/default/
+总用量 16
+-rw-r--r--. 1 root root  119 8月   6 2019 useradd
+-rw-r--r--. 1 root root 1756 5月  18 2022 nss
+-rw-r--r--. 1 root root  235 7月  28 00:56 grub
+-rw-r--r--. 1 root root  119 8月   1 16:04 useradd.ori
+[root@stanbers ~]#
