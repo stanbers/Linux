@@ -1,0 +1,427 @@
+单引号（' '）: 所见即所得；
+双引号（" "）: 输出双引号内的所有内容时，如果内容中有命令（要反引下）、变量、特殊转义符，会先把变量、命令、转义符解析出结果，然后再输出最终内容，被称为弱引用，推荐使用；
+反引号（` `）: 相当于$(),一般用于引用命令，赋值和输出都要将命令用``引起来，里面是可执行的命令；
+
+分号（;）: 表示一个命令的结束，或者命令间的分隔符；
+井号（#）：root 用户的命令提示符，或者表示注释 ，或者一些命令的分隔符（:%#123#321#g  --->这个是在vim里面查找123，并替换成321）
+管道（|）： 将一个命令处理后的中间内容输出给下一个命令继续处理：
+[root@stanbers ~]# cat /etc/services | grep 3306
+mysql           3306/tcp                        # MySQL
+mysql           3306/udp                        # MySQL
+[root@stanbers ~]# 
+管道传输的是数据流（文件内容），不是文件（文件名）；
+上述的操作也可以不用管道，效率更高：
+[root@stanbers ~]# grep 3306 /etc/services
+mysql           3306/tcp                        # MySQL
+mysql           3306/udp                        # MySQL
+[root@stanbers ~]# 
+
+在grep中，grep -E ==egrep, 此时下面的 | 代表或者的意思；
+[root@stanbers ~]# egrep "3306|3521" /etc/services
+mysql           3306/tcp                        # MySQL
+mysql           3306/udp                        # MySQL
+mc3ss           3521/tcp                # Telequip Labs MC3SS
+mc3ss           3521/udp                # Telequip Labs MC3SS
+[root@stanbers ~]# 
+
+
+$符号： 
+a. 代表普通用户的命令提示符，如下：
+[root@stanbers ~]# su - stan
+上一次登录：二 8月  1 19:55:52 CST 2023:0 上
+[stan@stanbers ~]$ 
+
+b. 字符串前加$, 代表字符 串变量内容，如下：
+[stan@stanbers ~]$ a=123
+[stan@stanbers ~]$ echo $a
+123
+[stan@stanbers ~]$ 
+
+\ 逃脱符或转义符，即将有特殊含义的的字符（通配符或正则表达式），还原字符本意；
+
+{ } : 生成序列;
+
+&&: 并且的意思（and）,前面正确，后面才会执行；
+ || ： 或者（or）, 前面错误，后面才会执行；或者前面正确，后面不输出；
+！：
+a. 在bash 中表示取反；
+b. 在vi/vim 中表示强制；
+c. !ls表示找出最近一次以ls 开头的命令并执行；
+
+echo $? 用来验证命令是否执行成功，输出0表示成功，非0表示失败；
+
+正则表达式：为处理大量文本及字符串而定义的一套规则和方法；
+
+^ 尖角号： 如下只取以d 开头的记录，即目录， 即只匹配以d开头的行；
+[root@stanbers stan]# ls -ltr | grep ^d
+drwxr-xr-x. 2 stan stan     6 Aug 19  2022 Videos
+drwxr-xr-x. 2 stan stan     6 Aug 19  2022 Templates
+drwxr-xr-x. 2 stan stan     6 Aug 19  2022 Public
+drwxr-xr-x. 2 stan stan     6 Aug 19  2022 Music
+...
+
+$ 美元符： 匹配以某字符 结尾的行
+
+若^$ 这样组合使用，表示过虑空行，逻辑解释就是以$开头的行，或者以^结尾的行
+
+. 点号， 表示匹配任意一个字符（不能匹配空行）
+
+\ 转义字符，如\. 只表示小数点
+
+* 星号， 匹配重复前一个字符（连续出现）0次或n 次， 
+ 如s*,  会匹配空、s 、ss 、 sss 、
+
+grep: Globally search a Regular Expression and Print
+
+[abc] : 匹配[ ]内的任意一个字符a 或 b 或 c   ; [abc]也可以写成[a-c]
+
+[^abc]: 匹配不包含^后的任意字符a 或 b 或 c，这里的^表示对[abc]取反，不用能 ! 替代；
+
++ 加号， 匹配前一个字符1次或多次；
+
+[:/]+  匹配括号内的 : 或 / 字符一次或多次
+
+| 表示或者
+
+() 表示分组过虑被括起来的东西，表示一个整体，另外()里的内容可以被后面的\n引用，n为数字，表示引用第几个括号里的内容， 如
+(aa)\1, 匹配aaaa
+(aa)(bbb)\1\2, 匹配aaaabbbbbb
+
+====================================================================================================================
+
+sed: stream editor for filtering and transforming text
+
+对文件实现快速CRUD，常用的功能是取行和替换
+
+语法格式：
+sed [选项] [sed 内置命令字符]  [输入文件]
+
+-n : suppress automatic printing of pattern space (取消默认sed 的输出)
+
+-i : edit files in place (makes backup if SUFFIX supplied)(直接修改文件内容)（如果不使用-i ， sed 只是修改在内存中的数据， 并不会影响磁盘上的文件）
+
+-e : add the script to the commands to be executed(允许多次编辑)
+
+[root@stanbers xu]# cat -n sed_test.txt 
+     1 linux daily notes
+     2 
+     3 make most of everyday 
+     4 
+     5 where are we heading ?
+     6 
+     7 fuck the world if you're rich, otherwise fuck your self!
+     8 
+     9 to make each day count
+[root@stanbers xu]# sed -n '1,5p' sed_test.txt 
+linux daily notes
+
+make most of everyday 
+
+where are we heading ?
+[root@stanbers xu]#
+
+取出包含 'day' 的行：
+方法一：
+[root@stanbers xu]# sed -n '/day/p' sed_test.txt 
+make most of everyday 
+to make each day count
+[root@stanbers xu]# 
+
+方法二：
+[root@stanbers xu]# grep 'day' sed_test.txt 
+make most of everyday 
+to make each day count
+[root@stanbers xu]#
+
+sed -n '/keywords/p' test.txt  ---> 取出包含keywords 的行
+sed '/keywords/d' test.txt ---> 将其删除之
+
+sed -n '2,4p' test.txt ---> 取出第2至第4行
+sed '2,4d' test.txt --->将其删除之
+
+-n, --quiet, --silent
+
+              suppress automatic printing of pattern space
+
+内置命令符：
+p, print 
+d, delete 
+=, 显示行号
+
+快速备份一个文件：cp test.txt{,.ori}
+
+修改文件并备份：sed -i.bak ''/baidu/d test.txt:
+[root@stanbers xu]# ll
+total 12
+drwxr-xr-x. 2 root  root   6 Jul 30 16:50 bb
+  wxr-xr-x. 2 root  root   6 Jul 30 16:51 dd
+drwxr-xr-x. 2 root  root  44 Jul 31 17:58 hard_link
+-rw-r--r--. 1 root  root   0 Jul 10 16:38 liang
+-rw-r--r--. 1 root  root 148 Aug  2 17:47 sed_test.txt
+-rwxr--r--. 1 test1 root  89 Aug  2 23:35 test.txt
+-rw-r--r--. 1 root  root  87 Aug  2 23:45 test2.txt
+[root@stanbers xu]# cat test.txt
+
+www.google.com
+www.baidu.com
+www.github.com
+www.baidu.com
+www.google.com
+www.google.com
+[root@stanbers xu]# sed -i.bak '/baidu/d' test.txt
+[root@stanbers xu]# cat test.txt
+
+www.google.com
+www.github.com
+www.google.com
+www.google.com
+[root@stanbers xu]# ll
+total 16
+drwxr-xr-x. 2 root  root   6 Jul 30 16:50 bb
+drwxr-xr-x. 2 root  root   6 Jul 30 16:51 dd
+drwxr-xr-x. 2 root  root  44 Jul 31 17:58 hard_link
+-rw-r--r--. 1 root  root   0 Jul 10 16:38 liang
+-rw-r--r--. 1 root  root 148 Aug  2 17:47 sed_test.txt
+-rwxr--r--. 1 test1 root  61 Aug  3 01:15 test.txt
+-rwxr--r--. 1 test1 root  89 Aug  2 23:35 test.txt.bak
+-rw-r--r--. 1 root  root  87 Aug  2 23:45 test2.txt
+[root@stanbers xu]# vimdiff test.txt test.txt.bak  ---> 可以比较两个文件的差异
+
+
+将文件中的csdn 全部换成baidu:
+sed -i.bak 's#csdn#baidu#g' test2.txt
+
+[root@stanbers xu]# cat test2.txt 
+
+www.google.com
+www.csdn.com
+www.github.com
+www.csdn.com
+www.google.com
+www.google.com
+[root@stanbers xu]# sed -i.bak 's#csdn#baidu#g' test2.txt 
+[root@stanbers xu]# cat test2.txt
+
+www.google.com
+www.baidu.com
+www.github.com
+www.baidu.com
+www.google.com
+www.google.com
+  
+a,代表append
+sed -i '2a make most of everyday' test.txt-----> 表示在第二行后面追加一行「make most of everyday」
+
+i,代表insert
+sed 'i2 to make each day count' test.txt  ---> 在第二行插入『to make each day count』，之前的第二行会变成第三行
+
+如果需要插入两行，可以这样操作：
+sed 'i2 to make each day count. \n I got it.' test.txt----->两句话中间用\n 就可以
+
+ifconfig 中的if 指的是 interface
+
+=======================================================================================================================================
+
+练习题：
+1. 添加一个用户mysql, 并指定登录shell 为/bin/nologin,不创建家目录：
+[root@stanbers ~]# useradd -s /sbin/nologin -M mysql
+[root@stanbers ~]# id mysql
+uid=1004(mysql) gid=1004(mysql) groups=1004(mysql)
+[root@stanbers ~]# cat /etc/passwd ----> 可以看到刚创建的mysql user
+
+-s, --shell SHELL
+           sets the path to the user's login shell. Without this option,
+           the system will use the SHELL variable specified in
+           /etc/default/useradd, or, if that is as well not set, the
+           field for the login shell in /etc/passwd remains empty.
+-M, --no-create-home
+           Do not create the user's home directory, even if the system
+           wide setting from /etc/login.defs (CREATE_HOME) is set to
+           yes.
+
+
+2. 添加一个叫test 的用户，并设置uid 为5000, 且30天后过期
+[root@stanbers ~]# useradd test123 -u 5000 -e "2023/09/02"
+[root@stanbers ~]# id test123
+uid=5000(test123) gid=5000(test123) groups=5000(test123)
+[root@stanbers ~]# chage -l test123
+Last password change     : Aug 02, 2023
+Password expires     : never
+Password inactive     : never
+Account expires      : Sep 02, 2023
+Minimum number of days between password change  : 0
+Maximum number of days between password change  : 99999
+Number of days of warning before password expires : 7
+[root@stanbers ~]# 
+
+
+3. 给test123授权，使之可以通过sudo运行useradd 命令
+[root@stanbers ~]# visudo
+....
+    119 ## Read drop-in files from /etc/sudoers.d (the # here does not mean a comment)
+    120 #includedir /etc/sudoers.d
+    121 test123 ALL=(ALL) /usr/sbin/useradd
+"/etc/sudoers.tmp" 121L, 4364C written
+[root@stanbers ~]# echo "123456" | passwd --stdin test123
+Changing password for user test123.
+passwd: all authentication tokens updated successfully.
+[root@stanbers ~]# su - test123
+Last login: Wed Aug  2 18:58:19 CST 2023 on pts/1
+[test123@stanbers ~]$ sudo useradd test321  ---->已经有权限使用useradd
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for test123:   ----> 输入上面设置的密码：123456
+[test123@stanbers ~]$ cat /etc/passwd
+...
+mysql:x:1004:1004::/home/mysql:/sbin/nologin
+test123:x:5000:5000::/home/test123:/bin/bash
+test321:x:5001:5001::/home/test321:/bin/bash ----> test321 已经被添加成功了
+
+在vim 里，
+a . 数字gg （100gg）就是跳到第100行首；
+b . 按0 跳到行首，$跳到行末；
+c . 撤消操作，按u；
+
+4. 用数字权限修改 /app/目录的权限为dr-x-wxr-x
+[root@stanbers stan]# mkdir app
+[root@stanbers stan]# chmod 535 /app
+[root@stanbers stan]# ls -ltr
+..
+dr-x-wxr-x. 2 root root     6 Aug  2 20:32 app
+
+5. 创建test.txt 文件，添加用户组test,添加用户test1, 并将test用户加入test组，让test1对test.txt文件有读和执行的权限 
+[root@stanbers xu]# touch test.txt        
+[root@stanbers xu]# groupadd test
+[root@stanbers xu]# useradd test1 -g test 
+[root@stanbers xu]# chown test1 test.txt
+[root@stanbers xu]# chmod u+rx test.txt
+[root@stanbers xu]# ls -ltr 
+...
+-rwxr--r--. 1 test1 root   0 Aug  2 20:46 test.txt
+
+最的两条命令，可以换成chmod o=rx test.txt
+
+三部分分别为：user / group / other
+
+6. 找出/var/log 下所有3天以前，以.log 结尾的文件，并删除
+可以通过下面的三种方法：
+[root@stanbers xu]# find /var/log -type f -name "*.log" -mtime +3 | xargs rm -f
+[root@stanbers xu]# find /var/log -type f -name "*.log" -mtime +3  -exec rm -f {} \
+[root@stanbers xu]# rm -f `find /var/log -type f -name "*.log" -mtime +3`
+
+-mtime: 修改时间
+-atime: 访问时间
+-ctime: 状态时间
+
+xargs: 大多数命令都不接受标准输入(stdin)作为参数，只能直接在命令行输入参数，这导致无法用管道命令传递参数, xargs命令的作用，是将标准输入转为命令行参数。
+
+7. 怎么给文件/etc/passwd加上不可更改属性，防止非法写入？
+chattr +i /etc/passwd
+
+8. 请写出以下各目录的作用：
+/etc/fstab          # 开机自动挂载文件
+/etc/rc.local  # 开机自启动程序命令的文件
+/etc/motd  # 登录后显示的登录信息
+/etc/hostname  # 主机名文件
+
+9. 将/etc/passwd 文件中含有root 或 stan行重定向保存到/root/stan_test.log
+[root@stanbers xu]# grep -E "root|stan" /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+operator:x:11:0:operator:/root:/sbin/nologin
+stanxu:x:1000:1000:stanxu:/home/stanxu:/bin/bash
+stan:x:1001:1001:Stan:/home/stan:/bin/bash
+[root@stanbers xu]# grep -E "root|stan" /etc/passwd >/root/stan_test.log
+[root@stanbers xu]# cat /root/stan_test.log 
+root:x:0:0:root:/root:/bin/bash
+operator:x:11:0:operator:/root:/sbin/nologin
+stanxu:x:1000:1000:stanxu:/home/stanxu:/bin/bash
+stan:x:1001:1001:Stan:/home/stan:/bin/bash
+[root@stanbers xu]# 
+
+-E 或 --extended-regexp : 将样式为延伸的正则表达式来使用。
+其中grep -E == egrep
+
+10. 某个服务器有a.sh 脚本，用户权限为644，需要执行什么命令，才可以执行./a.sh ?
+chmod +x a.sh
+
+11. 如何查看test用户对系统所做的操作记录和登录信息记录？
+对系统所做的操作记录用命令： history 
+登录信息启示用命令：last / lastlog / w
+
+w - Show who is logged on and what they are doing.
+
+12. 请问如下登录环境故障的原理及解决办法？
+-bash-4.1$
+原因：缺失环境变量文件
+解决方法：-bash-4.1$ cp /etc/skel/.bash* .
+
+13. 已知passwd 命令修改的文件为/etc/shadow, 普通用户也可以通过passwd 命令修改自己密码，但是/etc/shadow的权限很小，普通用户没权限更改密码， 请解释普通用户为什么可以获得修改密码的权限 ？
+[root@stanbers xu]# ls -l /etc/shadow
+----------. 1 root root 1433 Aug  2 20:49 /etc/shadow
+
+因为passwd命令被设置了suid 权限 。
+
+
+SUID (Set UID)是Linux中的一种特殊权限,其功能为用户运行某个程序时，如果该程序有SUID权限，那么程序运行为进程时，进程的属主不是发起者，而是程序文件所属的属主。
+
+14. 统计test.txt文件中的域名出现的次数，并按次数倒序排序，重定向到 /a.log
+www.google.com
+www.baidu.com
+www.github.com
+www.baidu.com
+www.google.com
+www.google.com
+
+[root@stanbers xu]# sort test.txt 
+
+www.baidu.com
+www.baidu.com
+www.github.com
+www.google.com
+www.google.com
+www.google.com
+[root@stanbers xu]# sort test.txt | uniq -c
+      1 
+      2 www.baidu.com
+      1 www.github.com
+      3 www.google.com
+[root@stanbers xu]# sort test.txt | uniq -c | sort -rn
+      3 www.google.com
+      2 www.baidu.com
+      1 www.github.com
+      1 
+[root@stanbers xu]# sort test.txt | uniq -c | sort -rn >/a.log 
+[root@stanbers xu]# cat /a.log
+      3 www.google.com
+      2 www.baidu.com
+      1 www.github.com
+      1 
+[root@stanbers xu]# 
+uniq -c 中的-c 表示count
+sort -rn 中的 -r 表示reverse, -n 表示根据数字排序
+
+ 15. 将14题中的test.txt中的内容，重定向到test2.txt文件，并将里面的baidu替换为csdn
+touch test2.txt
+cat test.txt >test2.txt
+vim test2.txt
+:%s#baidu#csdn#g
+:wq
+
+关于%s###g, 其中s表示switch, g表示globle
+
+16. 查找/下，包含.conf 和.log 的所有文件，并打包，将压缩包以当天日期为文件名备份到/opt下
+[root@stanbers xu]# find / -type f -name "*.conf" -o -name "*.log" | xargs tar zcf /opt/$(date +%F).tar.gz
+[root@stanbers opt]# ll /opt
+total 840
+-rw-r--r--. 1 root root 859003 Aug  2 23:56 2023-08-02.tar.gz
+drwx--x--x. 4 root root     28 Jul 10 16:25 containerd
+drwxr-xr-x. 2 root root      6 Oct 31  2018 rh
+
+find -o 中的-o 代表or
+
