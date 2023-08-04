@@ -1,0 +1,214 @@
+sed -n '/keywords/p' test.txt  ---> 取出包含keywords 的行
+sed '/keywords/d' test.txt ---> 将其删除之
+
+sed -n '2,4p' test.txt ---> 取出第2至第4行
+sed '2,4d' test.txt --->将其删除之
+
+-n, --quiet, --silent
+
+              suppress automatic printing of pattern space
+
+内置命令符：
+p, print 
+d, delete 
+=, 显示行号
+
+快速备份一个文件：cp test.txt{,.ori}
+
+修改文件并备份：sed -i.bak ''/baidu/d test.txt:
+[root@stanbers xu]# ll
+total 12
+drwxr-xr-x. 2 root  root   6 Jul 30 16:50 bb
+  wxr-xr-x. 2 root  root   6 Jul 30 16:51 dd
+drwxr-xr-x. 2 root  root  44 Jul 31 17:58 hard_link
+-rw-r--r--. 1 root  root   0 Jul 10 16:38 liang
+-rw-r--r--. 1 root  root 148 Aug  2 17:47 sed_test.txt
+-rwxr--r--. 1 test1 root  89 Aug  2 23:35 test.txt
+-rw-r--r--. 1 root  root  87 Aug  2 23:45 test2.txt
+[root@stanbers xu]# cat test.txt
+
+www.google.com
+www.baidu.com
+www.github.com
+www.baidu.com
+www.google.com
+www.google.com
+[root@stanbers xu]# sed -i.bak '/baidu/d' test.txt
+[root@stanbers xu]# cat test.txt
+
+www.google.com
+www.github.com
+www.google.com
+www.google.com
+[root@stanbers xu]# ll
+total 16
+drwxr-xr-x. 2 root  root   6 Jul 30 16:50 bb
+drwxr-xr-x. 2 root  root   6 Jul 30 16:51 dd
+drwxr-xr-x. 2 root  root  44 Jul 31 17:58 hard_link
+-rw-r--r--. 1 root  root   0 Jul 10 16:38 liang
+-rw-r--r--. 1 root  root 148 Aug  2 17:47 sed_test.txt
+-rwxr--r--. 1 test1 root  61 Aug  3 01:15 test.txt
+-rwxr--r--. 1 test1 root  89 Aug  2 23:35 test.txt.bak
+-rw-r--r--. 1 root  root  87 Aug  2 23:45 test2.txt
+[root@stanbers xu]# vimdiff test.txt test.txt.bak  ---> 可以比较两个文件的差异
+
+
+将文件中的csdn 全部换成baidu:
+sed -i.bak 's#csdn#baidu#g' test2.txt
+
+[root@stanbers xu]# cat test2.txt 
+
+www.google.com
+www.csdn.com
+www.github.com
+www.csdn.com
+www.google.com
+www.google.com
+[root@stanbers xu]# sed -i.bak 's#csdn#baidu#g' test2.txt 
+[root@stanbers xu]# cat test2.txt
+
+www.google.com
+www.baidu.com
+www.github.com
+www.baidu.com
+www.google.com
+www.google.com
+  
+a,代表append
+sed -i '2a make most of everyday' test.txt-----> 表示在第二行后面追加一行「make most of everyday」
+
+i,代表insert
+sed 'i2 to make each day count' test.txt  ---> 在第二行插入『to make each day count』，之前的第二行会变成第三行
+
+如果需要插入两行，可以这样操作：
+sed 'i2 to make each day count. \n I got it.' test.txt----->两句话中间用\n 就可以
+
+ifconfig 中的if 指的是 interface
+
+1. 取出ens36中的ip :
+
+[root@stanbers ~]# ifconfig ens36 | sed -n '2p'
+        inet 172.16.216.144  netmask 255.255.0.0  broadcast 172.16.255.255
+[root@stanbers ~]# ifconfig ens36 | sed -rn '2s#^.*inet ##gp'
+172.16.216.144  netmask 255.255.0.0  broadcast 172.16.255.255
+[root@stanbers ~]# ifconfig ens36 | sed -rn '2s#^.*inet ##gp' | sed -rn 's#  net.*$##gp'
+172.16.216.144
+
+或者可以是这样：(反向引用)，即用\1来引用（.*）
+[root@stanbers ~]# ifconfig ens36 | sed -rn '2s#^.*inet (.*)  net.*$#\1#gp'                           
+172.16.216.144
+
+2. 取出644：
+
+[root@stanbers ~]# stat /etc/hosts
+  File: '/etc/hosts'
+  Size: 184        Blocks: 8          IO Block: 4096   regular file
+Device: 803h/2051d Inode: 17738247    Links: 1
+Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+Context: system_u:object_r:net_conf_t:s0
+Access: 2023-08-02 21:17:25.516441567 +0800
+Modify: 2023-07-29 13:22:41.582731993 +0800
+Change: 2023-07-29 13:22:41.584731993 +0800
+ Birth: -
+[root@stanbers ~]# stat /etc/hosts | sed -rn '4s#^.*\(0##gp'
+644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+[root@stanbers ~]# stat /etc/hosts | sed -rn '4s#^.*\(0##gp' | sed -rn 's#/-.*$##gp'
+644
+
+或者使用反向引用：
+[root@stanbers ~]# stat /etc/hosts | sed -rn '4s#^.*\(0(.*)/-.*$#\1#gp'                        
+644
+
+练习题：
+1. 用sed 将/etc/passwd 文件的第一行至最后一行重定向到/sed_test.txt
+sed -n '1,$p' /etc/passwd >/sed_test.txt
+其中$表示最后一行
+
+awk -F ":" '{print NR,$1,$2}' test.txt
+
+[root@stanbers xu]# cat awk1
+a:::b++++c----
+[root@stanbers xu]# awk -F "[:+-]+" '{print $1,$2,$3}' awk1
+a b c
+
+NR : 显示行号
+
+awk -F: '$3>200{print $0}' test.txt
+这里的-F: 即-F ":" 
+$0 代表所有列,或者说整行
+$NF 代表最后一列
+$(NF-1) 代表倒数第二列
+
+cut  主要用于取列，一般用于简单的取列
+
+多经历一些，人生才有回忆
+
+-d 指定分隔符 （delimiter）
+-f 数字 指定哪列，多列可以用逗号或- （field）
+-c 按字符取内容（character）
+
+[root@stanbers xu]# echo everyday | cut -c 1-3
+eve
+[root@stanbers xu]# echo everyday | cut -c 1-3,6-8
+eveday
+
+[root@stanbers xu]# cut -d: -f1,3 /etc/passwd
+=========================================================================================================
+未曾学艺先习礼，未曾学武先习德。
+
+ Raid: Redundant Array of Inexpensive Disk
+廉价冗余磁盘阵列
+它是一种把一块及多块独立的物理磁盘按不同的技术方式组合起来形成一个磁盘组，在逻辑上看起来就是一块大的磁盘，可以提供比单个物理磁盘更大的存储容量或更高的存储性能，同时又能提供不同级别数据冗余备份的一种技术。
+
+磁盘阵列可以把多个磁盘驱动通过不同的连接方式连接在一起协同工作，大大提高了读取速度，同时把磁盘的可靠性提高到接近无错的境界，使其可靠性极高 
+
+寻找自己的痛点，并把痛点放大。
+用比学习更痛苦的事情，去对抗学习；---> 比学习更痛苦的事情：没钱
+
+生产环境常用Raid 级别： 0、1、5、10
+
+Raid0，适应于：大规模并发业务，但对数据安全性要求不高
+a. 对性能要求很高，对冗余要求很低的业务;
+b. mysql 主从复制的多个slave 服务器；
+c. 分布式文件存储下面的主节点或chunk server;
+d. LB集群下面的多个相同RS 节点服务器；
+e. 需要一块或以上盘；
+
+Raid1: 
+a. 只能是两块盘，镜像盘;
+b. 容量以小的为基准；
+c. 冗余 100%；
+d. 容量减半；
+e. 适应于对数据安全要求高
+
+Raid5: 
+a. 至少三块盘，其中两块盘存放数据，第三块盘存放校验数据，此校验数据是前两块盘上的数据通过一种算法（奇偶校验）得到。或者其中一块盘上的数据丢了，可以通过另外两盘上的数据计算得到该丢失的数据；
+b. 容量是n-1
+c. 可以理解为是Raid0 和Raid1 的折中文案
+
+
+Raid10: （先做1再做0，即底层是1，上层是0）
+a. 容量减半，成本高；
+b. 可以损失两块盘；
+c. 读写性能都不错；
+d. 适应于主数据库，主存储服务器；
+
+主分区：primary 
+a. 最多4个，最少1个；
+b. 分区数字编号只能是1-4：sda1/sda2/sda3/sda4；
+c. 系统中必须要存在的分区；
+
+如果想分超过4个分区怎么办？ 可以用下面的扩展、逻辑分区实现：
+
+扩展分区：extend
+a. 占用主分区编号2-4；
+b. 不能直接放数据 ；
+c. 最多只能有一个；
+d. 必须在其下划分逻辑分区；
+e. 主分区+扩展分区最多4个；
+f. 扩展分区可以没有，最多只能有一个；
+
+逻辑分区： logical
+a. 不能独立存在，必须在扩展分区之上；
+b. 编号最小是5；
+c. 可以存放数据；
