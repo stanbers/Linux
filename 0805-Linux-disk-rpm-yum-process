@@ -1,0 +1,336 @@
+mkfs格式化磁盘的实质：（make file system）
+a. 创建文件系统；
+b. 文件系统类似于房子装修的风格。组织文件目录的方式；
+
+GPT: GUID partition table 用于大于2T 磁盘分区
+
+磁盘挂载 mount 命令：
+磁盘在格式化后，挂载前，是不能被正常使用的（像一个无门无窗的小监狱）；
+做个门，这个门就是目录，如：/data
+安装门的过程，就是挂载，如：mount /dev/sdb1 /data
+
+fstab - static information about the filesystems
+/etc/fstab --> 实现永久挂载
+
+du - estimate file space usage （disk usage）
+
+-s, --summarize
+              display only a total for each argument
+-h, --human-readable
+              print sizes in human readable format (e.g., 1K 234M 2G)
+
+如： du -sh /boot ---> boot代表内核
+swap: 虚拟内存，物理内存的1.5倍，它的作用是当系统的物理内存不够时，将硬盘空间的一部分空间释放出来，以供当前运行的程序使用（当物理内存不够时，会随机kill占用内存的进程，从而产生oom， 使用swap 可以解决）
+
+a. swap 是当物理内存不够时，临时将磁盘空间作为内存顶替使用；
+b. 如果没有swap，物理内存不够时，系统会启用保护机制，然后kill 掉某个占用内存的程序；
+c. 如果有swap, 物理内存不够时，使用swap作为内存，系统就会开始变得比较慢；
+
+mkfs - build a Linux filesystem
+mkfs.xfs - construct an XFS filesystem
+
+
+文件系统：是一种存储和组织计算机数据文件的机制或方法
+它使得对计算机内的数据的存储、访问和查找变得更容易、简单
+文件系统在计算机里其实是一个应用软件
+
+磁盘分区后为什么需要格式化？
+磁盘分区在没有格式化前，操作系统是无法识别系统上磁盘分区格式的，也就无法存取文件目录属性和权限等内容，把分区格式化成操作系统支持的某个文件系统后，再存放数据，系统就会根据这个文件系统的格式进行存取文件了
+
+
+磁盘相关命令：
+gdisk  gpt 分区工具，常用于大于2T；
+fdisk  mbr分区工具，小于2T；
+parted  gpt分区工具，常用于大于2T，更复杂；
+partprobe 通知内核生效；
+mkfs  格式化（-t）;
+mount  挂载（-a/-t/-o）;
+umount  卸载；
+mkswap  格式化swap;
+swapon  加载swap;
+swapoff  关闭swap;
+dd   生成一个模拟设备的文件；
+free   查内存 -m;
+lsblk  查看分区及挂载信息；
+sync  将数据从缓冲区同步到磁盘；
+xfs_repair xfs 修复工具；
+fsck,e2fsck ext修复工具；
+df   查看磁盘挂载和使用量等信息（-h/-i）;
+du   查看目录以及子目录及文件大小：du -sh /etc/*
+
+iostat -d -x -1: 展示所有的磁盘的I/O指标，每1秒输出一组数据；
+iotop : 输出结果的前两行分别表示 进程的磁盘读写大小总数和磁盘真实的读写大小总数
+
+rpm: rpm package managerment
+[root@stanbers ~]# rpm -qa tree
+tree-1.6.0-10.el7.x86_64
+
+rpm -qi  查看指定软件的详细信息
+[root@stanbers ~]# rpm -qi tree
+Name        : tree
+Version     : 1.6.0
+Release     : 10.el7
+Architecture: x86_64
+Install Date: Fri Jul 28 00:43:59 2023
+Group       : Applications/File
+Size        : 89505
+License     : GPLv2+
+Signature   : RSA/SHA256, Fri Jul  4 13:36:46 2014, Key ID 24c6a8a7f4a80eb5
+Source RPM  : tree-1.6.0-10.el7.src.rpm
+Build Date  : Tue Jun 10 03:28:53 2014
+Build Host  : worker1.bsys.centos.org
+Relocations : (not relocatable)
+Packager    : CentOS BuildSystem <http://bugs.centos.org>
+Vendor      : CentOS
+URL         : http://mama.indstate.edu/users/ice/tree/
+Summary     : File system tree viewer
+Description :
+The tree utility recursively displays the contents of directories in a
+tree-like format.  Tree is basically a UNIX port of the DOS tree
+utility.
+[root@stanbers ~]# rpm -ql tree   ----> 常用
+/usr/bin/tree
+/usr/share/doc/tree-1.6.0
+/usr/share/doc/tree-1.6.0/LICENSE
+/usr/share/doc/tree-1.6.0/README
+/usr/share/man/man1/tree.1.gz
+[root@stanbers ~]# rpm -ql tree
+/usr/bin/tree
+/usr/share/doc/tree-1.6.0
+/usr/share/doc/tree-1.6.0/LICENSE
+/usr/share/doc/tree-1.6.0/README
+/usr/share/man/man1/tree.1.gz
+
+
+rpm -e 包名： 表示卸载软件
+rpm -e --force --nodeps 包名： 强制卸载
+
+rpm 的痛点是在安装的时候依赖的包很多，利用yum 可以解决这个痛点.
+
+yum: yellow dog updater, modified
+能够从互联网下载.rpm 包并且安装，并可以自动处理依赖关系。
+
+[root@stanbers xu]# ls /etc/yum.repos.d/ -l
+total 48
+-rw-r--r--. 1 root root 2523 Jul 28 00:25 CentOS-Base.repo
+-rw-r--r--. 1 root root 1309 Nov 23  2020 CentOS-CR.repo
+-rw-r--r--. 1 root root  649 Nov 23  2020 CentOS-Debuginfo.repo
+-rw-r--r--. 1 root root  630 Nov 23  2020 CentOS-Media.repo
+-rw-r--r--. 1 root root 1331 Nov 23  2020 CentOS-Sources.repo
+-rw-r--r--. 1 root root 8515 Nov 23  2020 CentOS-Vault.repo
+-rw-r--r--. 1 root root  314 Nov 23  2020 CentOS-fasttrack.repo
+-rw-r--r--. 1 root root  616 Nov 23  2020 CentOS-x86_64-kernel.repo
+-rw-r--r--. 1 root root 1919 Jul  8 04:20 docker-ce.repo
+-rw-r--r--. 1 root root  664 Jul 29 14:12 epel.repo
+
+gzip *  打包
+gzip -d *   其中-d 代表解包，删除源文件
+
+file://(本地)
+ftp://(局域网)
+http://(公网)
+
+systemctl stop firewalld  关闭防火墙
+systemctl disable firewalld 取消开机自启动
+setenfore 0    临时关闭selinux
+
+GNU 编译器套件（GNU Compiler Collection），简称为GCC，是一组编译器和开发工具组合，可用于Linux、Windows、多种BSD 以及其他操作系统。
+
+进程（process）：计算机应用软件或代码程序被执行，运行于内存中的时候，就称之为进程，运行结束，进程就会消失
+
+守护进程：（daemon process）,除具备普通进程特点外，还提供某种服务而持续运行
+
+ps - report a snapshot of the current processes.
+
+ps -ef  其中-e 代表Select all processes. -f 代表Do full-format listing
+
+ps aux:
+[root@stanbers xu]# ps aux
+USER        PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root          1  0.0  0.4 193940  4416 ?        Ss   17:07   0:02 /usr/lib/systemd/systemd --switched-root --system --deserialize 
+root          2  0.0  0.0      0     0 ?        S    17:07   0:00 [kthreadd]
+root          4  0.0  0.0      0     0 ?        S<   17:07   0:00 [kworker/0:0H]
+
+
+pgrep:
+[root@stanbers xu]# pgrep crond
+1150
+
+top 命令：
+load average: 0.00, 0.01, 0.05 中 三个数字分别表示1min / 5min / 15min的平均负载情况
+
+cpu 使用状态 ：
+us(user)    代表用户空间占用cpu 百分比（如：应用程序、执行命令）;
+sy(system)   代表内核空间占用cpu百分比（如：内核进程、硬件磁盘操作）；
+ni(nice)    代表改变过优先级的进程占用CPU的百分比；
+id(idle)    代表空闲cpu 百分比，数值越大，cpu越空闲；
+wa(wait)    代表IO 等待占用CPU 的百分比；
+hi(hard interrupts)  硬中断占用CPU 百分比；
+si(soft interrupts)  软中断占用CPU 百分比；
+st      虚拟机占用CPU 百分比；
+
+在执行top 命令后，按数字 1 可以查看有多少cpu ,类似于lscpu
+
+kill 终止进程
+kill -l  代表列出全部的信号名称
+kill -s  代表要发送的信号(一般可以省略)
+
+kill -9 进程名
+a. 强制杀，会导致服务起不来，一般不要操作，宁愿等一会；
+b. 数据服务不能强杀，DB 相关服务；
+c. 非数据服务可以强杀；
+
+
+已知端口查看对应的服务(如：查看80端口对应的服务， 有以下两种方法)
+方法一：
+lsof -i :80  
+
+方法二：
+netstat -lntup | grep 80
+
+其中 ：
+-l  表示监听；
+-n 表示数字显示；
+-t  表示tcp;
+-u  表示udp;
+-p 表示进程名
+
+killall: 通过名字杀进程
+ 
+kill -0 pid  不发送关闭停止信号，但是会检查进程是否存在， 主要用于检查进程是否存在（在mysql服务关闭的时候，用这个命令查查）
+
+总结：
+pkill 进程名  一次杀死；
+killall 进程名  多次；
+ -9 强杀，会引起服务起不来；
+ -u  用户
+kill pid   默认不会引起服务起不来；
+kill -HUP pid  平滑重启（重新加载配置）；
+kill -0 pid   检查进程是否存在。实际应用，如mysql 服务关闭的时候；
+kill -9 pid   强杀，可能会引起服好务起不来；
+
+===============================================================
+进程前后台切换
+
+场景：  远程copy 大文件，持续时间长的操作；
+  需要定时执行的操作；
+  需要一直运行的进程（守护进程）；
+
+方法一：用命令
+ctrl + z  暂停法前进程；
+bg   放入后台；
+fg   拿回前台；
+jobs   查看当前队列，含id;
+
+方法二：还可以使用& 放后台运行：(此时脚本或命令需要全路径)
+sleep 200 &  
+
+nohup 命令： 用户退出系统进程继续工作；
+nohup 命令可以将程序以忽略挂起信号的方式运行起来（运行不受挂起影响的命令），被运行程序的输出信息将不会显示到终端。无论是否将nohup命令的输出重定向到终端，输出都将写入到当前目录的nohup.out 文件中。如果当前目录的nohup.out文件不可写，输出重定向到$HOME/nohup.out文件中。
+
+nohup ping www.baidu.com &
+
+方法三：screen
+
+1. [root@stanbers ~]# yum install screen -y
+
+2. 开启一个screen 窗口，指定名称：testScreen
+ [root@stanbers ~]# screen -S testScreen
+此时会出现一个新的窗口
+
+3. 在screen 窗口中执行任务即可；
+[root@stanbers ~]# while true; do echo "test screen" >>/tmp/testScreen.log;sleep 1; done
+
+可以从新打开的shell 窗口中看到这个文件里一直在每隔一秒写『test screen』
+[root@stanbers ~]# tail -f /tmp/testScreen.log 
+test screen
+test screen
+.....
+[root@stanbers ~]# screen -list
+There is a screen on:
+ 10536.testScreen (Attached)
+1 Socket in /var/run/screen/S-root.
+
+4. 在screen 窗口中，执行 ctrl + d 退出窗口(要把其他的窗口关掉，否则ctrl+d 不起作用)
+[detached from 10536.testScreen]
+[root@stanbers ~]# 
+
+5. 在关掉shell 窗口后，再重新打开：
+➜  ~ git:(master) ✗ ssh root@172.16.216.144
+root@172.16.216.144's password: 
+Last login: Sat Aug  5 14:05:33 2023 from 172.16.216.1
+[root@stanbers ~]# screen -list
+There is a screen on:
+ 10536.testScreen (Detached)
+1 Socket in /var/run/screen/S-root.
+
+[root@stanbers ~]# screen -r 10536
+
+又可以进入到之前的脚本窗口：
+[root@stanbers ~]# while true; do echo "test screen" >>/tmp/testScreen.log;sleep 1; done
+
+6. 终止 ctr+c
+
+===================================================================================
+nice 命令: 调整进程优先级
+
+strace 命令: 跟踪进程的系统调用
+进行执行，要调用很多接口，如果接口异常，进程就异常；strace 会追踪程序运行时的整个生命周期，输出每一个系统调用的名字、参数、返回值和执行消耗的时间等，是高级运维和开发人员的排查问题的杀手锏。
+
+-f 跟踪眼睛干涩 进程，以及目标进程创建的所有子进程
+-tt 在输出中的每一行前加上时间信息，精确到微秒；
+-e trace=file 只跟踪和文件操作有关的系统调用；
+-e trance=process 只跟踪和进程控制有关的系统调用；
+-p pid 指定要跟踪的进程pid， 要同时跟踪多个pid，重复多次-p 选项即可；
+-u username 以username 的UID/GID执行被跟踪的命令；
+-o filename 将strace的输出写入文件filename 中；
+
+ltrace: 跟踪进程调用库函数，它会显现出哪个库函数被调用，而strace则是跟踪进程的每个系统调用
+
+ltrace -o filename 进程的全路径
+
+load average  ： 平均负载
+单位时间内，系统处于可运行状态和不可中断状态的平均进程数，也就是平均活跃进程数；
+衡量系统繁忙的一个综合指标，主要是cpu/io的繁忙程度；
+一个进程产生到持续运行要占用很多资源：pid 、 内存、文件描述符、cpu 、 磁盘
+ps / top / sar 看cpu ；
+iostat / iotop 看磁盘；
+
+[root@stanbers ~]# uptime
+ 16:28:07 up 13:02,  2 users,  load average: 0.01, 0.04, 0.05
+
+CPU 总的核心数*70%  ===  关注点
+
+查看cpu 个数：
+[root@stanbers ~]# grep -c "physical id" /proc/cpuinfo
+1
+
+查看cpu 核数：
+[root@stanbers ~]# grep -c "cpu cores" /proc/cpuinfo
+1
+
+查看逻辑cpu 个数：
+[root@stanbers ~]# grep -c "processor" /proc/cpuinfo
+1
+
+================================================================
+查看Linux 系统运行级别：
+[root@stanbers ~]# ls -l /usr/lib/systemd/system/runlevel[0-9].target
+lrwxrwxrwx. 1 root root 15 Jul 28 00:54 /usr/lib/systemd/system/runlevel0.target -> poweroff.target
+lrwxrwxrwx. 1 root root 13 Jul 28 00:54 /usr/lib/systemd/system/runlevel1.target -> rescue.target
+lrwxrwxrwx. 1 root root 17 Jul 28 00:54 /usr/lib/systemd/system/runlevel2.target -> multi-user.target
+lrwxrwxrwx. 1 root root 17 Jul 28 00:54 /usr/lib/systemd/system/runlevel3.target -> multi-user.target
+lrwxrwxrwx. 1 root root 17 Jul 28 00:54 /usr/lib/systemd/system/runlevel4.target -> multi-user.target
+lrwxrwxrwx. 1 root root 16 Jul 28 00:54 /usr/lib/systemd/system/runlevel5.target -> graphical.target
+lrwxrwxrwx. 1 root root 13 Jul 28 00:54 /usr/lib/systemd/system/runlevel6.target -> reboot.target
+[root@stanbers ~]# 
+
+一共7个模式，从下到下对应0-7
+
+systemd: system daemon
+pid = 1，其他的进程都是systemd 的子进程
+
+systemctl list-unit-files | grep enabled
+
+过虑出那些不想自启动的进程：
+systemctl list-unit-files | egrep -v "network.ta|rsyslog|sshd\.|sysstat|static"| awk '{print "systemctl disable"$1}'|bash
