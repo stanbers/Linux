@@ -1,0 +1,22 @@
+安全组（SG: secure group）:类似于防火墙规则 
+VSW: 虚拟交换机
+
+云存储类型：
+块存储 （数据盘、系统盘）
+NAS 存储（文件存储）：Network Attached Storage：网络附加存储， 容量有限 ，支持NFS 协议
+OSS 存储（对象存储）：程序代码接口调用 ， 支持高并发，CDN 缓存，容量无限 
+
+RAM：访问控制
+用户与用户组
+用户访问方式：
+ 控制台访问：web 页面登录，手动操作阿里云资源
+ api 调用：开发的程序代码中调用阿里云资源（access id / access secret ）
+
+CLB:（classic load balancer） 传统负载均衡，支持四层和七层，七层仅支持对URI（location), 域名进行转发；
+SLB:(Server Load Balancer) 应用负载均衡，仅支持七层，（整合nginx 的if）负载均衡各种功能，可以根据请求头响应
+
+LVS (Linux Virtual Server):4层负载均衡  --> 处理数据转发
+Tengine ：7层负载均衡，以代理的方式
+
+如果是TCP/UDP 四层协议去流量请求，直接经过LVS 后，到达ECS；
+如果是HTTP/HTTPS 七层协议流量请求，先经过LVS 转发，再到Tengine（如果需要加密的话，就再经过key server），最后到达ECS
