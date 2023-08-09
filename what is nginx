@@ -1,0 +1,23 @@
+Nginx , it's like a gateway that stands between the internet and your back-end infrastructure. 
+When you visit a web app. the first place your request will go is to a web server. 
+Its job is to look at the requested resource and determine where to find it on the server, then send it back as the response. 
+In fact if you open up the network tab in chrome devtools right now, 
+You can look at the server header on any response and there's a good chance, 
+It'll be nginx. it's extremely popular with high traffic sites, 
+Because it can handle more than 10000 simultaneous connections with its event driven architecture. 
+It's also commonly used as a reverse proxy where it acts as a traffic light to distribute the load to multiple backend severs while also providing security and caching for better performance. 
+In most cases it'll be installed on a linux server with configuration file being found in the /etc/nginx/nginx.conf directory. 
+You can customize the behavior of your server by defining directives. 
+A directive is just a key-value pair or if followed by braces it's known as a context which itself holds more directives. 
+In the global context we might want to specify things like a username and where to save our error logs, 
+But most of your configuration will likely be done in the http context. 
+Now one of the most important roles of nginx is to serve out static content like images and html. 
+We can handle that in the http context where we'll define one or more servers. 
+Each server is distinguished by the port that it listens to. 
+Nginx will keep track of every request to the server which you can write to an access log. 
+The most important thing though is to tell the server where to find the raw files which we do in the location context. 
+Now when a user navigates to our domain, 
+It knows where to find the html on the file system and we might want to setup a second location to match any image pattern to the images directory. 
+Other common things you might handle in your server config include ssl certificates rewrites and routing to a proxy server. 
+When I replace root with proxy pass, 
+I can point to a completely different server on the internet what we've created in a reverse proxy that can handle caching anonymity and load balancing. 
